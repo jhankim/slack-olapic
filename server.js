@@ -7,6 +7,85 @@ const app = new App({
   signingSecret: process.env.SLACK_SIGNING_SECRET,
 });
 
+const buildImageBlocks = ({ command, mediaList, nextPageUrl }) => {
+  let blocks = [];
+
+  if (command) {
+    blocks.push(
+      {
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: `Here's the result for: *${command.text}*\n\n`,
+        },
+      },
+      {
+        type: 'divider',
+      }
+    );
+  }
+
+  mediaList.forEach(media => {
+    blocks.push(
+      {
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: `*Source:* ${media.source}\n*Username*: @${media.user.username}\n*Caption:* ${
+            media.caption
+          }\n*Keywords:* ${media.keywords.join(', ')}`,
+        },
+      },
+      {
+        type: 'image',
+        title: {
+          type: 'plain_text',
+          text: media.images.mobile,
+        },
+        block_id: `${media.id}`,
+        image_url: media.images.mobile,
+        alt_text: 'caption goes here!',
+      },
+      {
+        type: 'actions',
+        elements: [
+          {
+            action_id: `share:${media.source}:${media.user.username}:${media.id}`,
+            type: 'channels_select',
+            placeholder: {
+              type: 'plain_text',
+              text: 'Share with a channel',
+              emoji: true,
+            },
+          },
+        ],
+      },
+      {
+        type: 'divider',
+      }
+    );
+  });
+
+  blocks.push({
+    type: 'actions',
+    elements: [
+      {
+        type: 'button',
+        action_id: 'load_more',
+        value: nextPageUrl,
+        style: 'primary',
+        text: {
+          type: 'plain_text',
+          text: 'Load more search results',
+          emoji: true,
+        },
+      },
+    ],
+  });
+
+  return blocks;
+};
+
 app.command('/olapic', ({ payload, context, command, ack, say }) => {
   // Acknowledge the action
   ack();
@@ -14,7 +93,7 @@ app.command('/olapic', ({ payload, context, command, ack, say }) => {
   // Start magic
   const keywordArray = command.text.split(',');
   const apiPayload = {
-    items_per_page: 20,
+    items_per_page: 5,
     sort: [
       {
         key: 'date_approved',
@@ -43,7 +122,8 @@ app.command('/olapic', ({ payload, context, command, ack, say }) => {
   })
     .then(response => response.json())
     .then(json => {
-      const mediaList = json.data.media.slice(0, 5);
+      const mediaList = json.data.media;
+      const nextPageUrl = json.data.pagination.next;
       if (mediaList.length === 0) {
         app.client.chat.postEphemeral({
           ...tokenAndChannel,
@@ -53,56 +133,7 @@ app.command('/olapic', ({ payload, context, command, ack, say }) => {
         return;
       }
       // create blocks
-      let blocks = [
-        {
-          type: 'section',
-          text: {
-            type: 'mrkdwn',
-            text: `Here's the result for: *${command.text}*\n\n`,
-          },
-        },
-        {
-          type: 'divider',
-        },
-      ];
-      // push media to blocks
-      mediaList.forEach(media => {
-        blocks.push(
-          {
-            type: 'section',
-            text: {
-              type: 'mrkdwn',
-              text: `*Source:* ${media.source}\n*Username*: @${media.user.username}\n*Caption:* ${
-                media.caption
-              }\n*Keywords:* ${media.keywords.join(', ')}`,
-            },
-          },
-          {
-            type: 'image',
-            title: {
-              type: 'plain_text',
-              text: media.images.mobile,
-            },
-            block_id: `${media.id}`,
-            image_url: media.images.mobile,
-            alt_text: 'caption goes here!',
-          },
-          {
-            type: 'actions',
-            elements: [
-              {
-                action_id: `share:${media.source}:${media.user.username}:${media.id}`,
-                type: 'channels_select',
-                placeholder: {
-                  type: 'plain_text',
-                  text: 'Share with a channel',
-                  emoji: true,
-                },
-              },
-            ],
-          }
-        );
-      });
+      let blocks = buildImageBlocks({ mediaList, nextPageUrl });
 
       // post
       app.client.chat.postEphemeral({
@@ -113,6 +144,47 @@ app.command('/olapic', ({ payload, context, command, ack, say }) => {
     })
     .catch(err => {
       say(`${err}`);
+    });
+});
+
+app.action('load_more', ({ ack, body, context, payload, action }) => {
+  ack();
+  const { action_id, value } = action;
+  const userId = body.user.id;
+
+  const tokenAndChannel = {
+    token: context.botToken,
+    channel: body.container.channel_id,
+  };
+
+  fetch(action.value, {
+    headers: {
+      Authorization: `ApiKey token="${process.env.OLAPIC_API_KEY}"`,
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    },
+  })
+    .then(response => response.json())
+    .then(json => {
+      const mediaList = json.data.media;
+      const nextPageUrl = json.data.pagination.next;
+      if (mediaList.length === 0) {
+        app.client.chat.postEphemeral({
+          ...tokenAndChannel,
+          user: userId,
+          text: `Sorry! There are no more photos.`,
+        });
+        return;
+      }
+      // create blocks
+      let blocks = buildImageBlocks({ mediaList, nextPageUrl });
+
+      // post
+      app.client.chat.postEphemeral({
+        ...tokenAndChannel,
+        user: userId,
+        blocks,
+      });
     });
 });
 
