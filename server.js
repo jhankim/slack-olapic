@@ -109,6 +109,10 @@ app.command(commandText, ({ payload, context, command, ack, say }) => {
         values: keywordArray,
         condition: 'or',
       },
+      stream_name: {
+        value: command.text,
+        condition: 'or',
+      },
     },
   };
   const tokenAndChannel = {
