@@ -4,8 +4,8 @@
   "description": "",
   "main": "script.js",
   "scripts": {
-    "start": "nodemon server.js",
-    "start:dev": "node server.js",
+    "server:dev": "nodemon server.js",
+    "server": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Jae Han Kim",
