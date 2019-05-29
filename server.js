@@ -1,5 +1,6 @@
 require('dotenv').config();
 const fetch = require('node-fetch');
+const moment = require('moment');
 const { App } = require('@slack/bolt');
 
 const app = new App({
@@ -33,7 +34,9 @@ const buildImageBlocks = ({ command, mediaList, nextPageUrl }) => {
           type: 'mrkdwn',
           text: `*Source:* ${media.source}\n*Username*: @${media.user.username}\n*Caption:* ${
             media.caption
-          }\n*Keywords:* ${media.keywords.join(', ')}`,
+          }\n*Keywords:* ${media.keywords.join(', ')}\n*Date approved*: ${moment(media.date_approved).format('YYYY-MM-DD h:mma')}\n*URL:* ${
+            media.original_source
+          }`,
         },
       },
       {
@@ -86,7 +89,8 @@ const buildImageBlocks = ({ command, mediaList, nextPageUrl }) => {
   return blocks;
 };
 
-app.command('/olapic', ({ payload, context, command, ack, say }) => {
+const commandText = process.env.NODE_ENV === 'production' ? '/olapic' : '/olapic-local';
+app.command(commandText, ({ payload, context, command, ack, say }) => {
   // Acknowledge the action
   ack();
 
@@ -234,7 +238,9 @@ app.action(/^(share:).*/, ({ context, payload, action, ack, say, body }) => {
               type: 'mrkdwn',
               text: `*Source:* ${media.source}\n*Username*: @${media.user.username}\n*Caption:* ${
                 media.caption
-              }\n*Keywords:* ${media.keywords.join(', ')}`,
+              }\n*Keywords:* ${media.keywords.join(', ')}\n*Date approved*: ${moment(media.date_approved).format(
+                'YYYY-MM-DD h:mma'
+              )}\n*URL:* ${media.original_source}`,
             },
           },
           {
