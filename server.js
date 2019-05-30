@@ -34,9 +34,10 @@ const buildImageBlocks = ({ command, mediaList, nextPageUrl }) => {
           type: 'mrkdwn',
           text: `*Source:* ${media.source}\n*Username*: @${media.user.username}\n*Caption:* ${
             media.caption
-          }\n*Keywords:* ${media.keywords.join(', ')}\n*Date approved*: ${moment(media.date_approved).format('YYYY-MM-DD h:mma')}\n*URL:* ${
-            media.original_source
-          }`,
+          }\n*Keywords:* ${media.keywords.join(', ')}\n*Date approved*: ${moment(
+            media.date_approved
+          ).format('YYYY-MM-DD h:mma')}${media.original_source &&
+            `\n*URL:* ${media.original_source}`}`,
         },
       },
       {
@@ -136,7 +137,9 @@ app.command(commandText, ({ payload, context, command, ack, say }) => {
         app.client.chat.postEphemeral({
           ...tokenAndChannel,
           user: payload.user_id,
-          text: `Sorry! I couldn't find any photos matching *${command.text}* :slightly_frowning_face:`,
+          text: `Sorry! I couldn't find any photos matching *${
+            command.text
+          }* :slightly_frowning_face:`,
         });
         return;
       }
@@ -242,9 +245,10 @@ app.action(/^(share:).*/, ({ context, payload, action, ack, say, body }) => {
               type: 'mrkdwn',
               text: `*Source:* ${media.source}\n*Username*: @${media.user.username}\n*Caption:* ${
                 media.caption
-              }\n*Keywords:* ${media.keywords.join(', ')}\n*Date approved*: ${moment(media.date_approved).format(
-                'YYYY-MM-DD h:mma'
-              )}\n*URL:* ${media.original_source}`,
+              }\n*Keywords:* ${media.keywords.join(', ')}\n*Date approved*: ${moment(
+                media.date_approved
+              ).format('YYYY-MM-DD h:mma')}${media.original_source &&
+                `\n*URL:* ${media.original_source}`}`,
             },
           },
           {
