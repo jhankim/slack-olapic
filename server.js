@@ -204,7 +204,13 @@ app.command(commandText, ({ payload, context, command, ack, say }) => {
       });
     })
     .catch(err => {
-      say(`${err}`);
+      console.log(err);
+      app.client.chat.postEphemeral({
+        ...tokenAndChannel,
+        user: userId,
+        text:
+          'Oops! Something went wrong with connecting with the Olapic API :slightly_frowning_face:',
+      });
     });
 });
 
@@ -247,6 +253,14 @@ app.action('load_more', ({ ack, body, context, action }) => {
         ...tokenAndChannel,
         user: userId,
         blocks,
+      });
+    })
+    .catch(err => {
+      app.client.chat.postEphemeral({
+        ...tokenAndChannel,
+        user: userId,
+        text:
+          'Oops! Something went wrong with connecting with the Olapic API :slightly_frowning_face:',
       });
     });
 });
@@ -310,6 +324,14 @@ app.action(/^(share:).*/, ({ context, action, ack, body }) => {
             text: err,
           });
         });
+    })
+    .catch(err => {
+      app.client.chat.postEphemeral({
+        ...tokenAndChannel,
+        user: userId,
+        text:
+          'Oops! Something went wrong with connecting with the Olapic API :slightly_frowning_face:',
+      });
     });
 });
 
