@@ -23,7 +23,7 @@ Since this app is currently under development and is not published in the Slack 
 
 2. Now you have successfully created the `ngrok` tunnel and the CLI will display the URL that the application is being served on:
 
-   ![](https://cl.ly/36890b1ba568/Image%202019-05-31%20at%2010.46.58%20AM.png)
+   <img src="https://cl.ly/36890b1ba568/Image%202019-05-31%20at%2010.46.58%20AM.png" width="600" />
 
 ## Configuring Slack App
 
@@ -33,7 +33,7 @@ Now that you have the public URL, create a new Slack app and configure the app f
 
 1. Enable Interactvity under _Interactive Components_ section, then type in the public URL provided by `ngrok` with `/slack/events` as the route into the Request URL field:
 
-   ![](https://cl.ly/2f0172218201/Image%2525202019-05-31%252520at%25252010.56.54%252520AM.png)
+   <img src="https://cl.ly/2f0172218201/Image%2525202019-05-31%252520at%25252010.56.54%252520AM.png" width="600" />
 
 1. Create a new slash commmand under the _Slash Commands_ section with the following values:
 
@@ -44,11 +44,11 @@ Now that you have the public URL, create a new Slack app and configure the app f
    - Short Description: `Search for UGC!`
    - Usage Hint: `[keywords]`
 
-   ![](https://cl.ly/2a4e500246c4/Image%202019-05-31%20at%2011.12.47%20AM.png)
+   <img src="https://cl.ly/2a4e500246c4/Image%202019-05-31%20at%2011.12.47%20AM.png" width="600" />
 
 1. Enable Events under _Event Subscriptions_ section, then type in the public URL provided by `ngrok` with `/slack/events` as the route into the Request URL field:
 
-   ![](https://cl.ly/b82e6352f194/Image%202019-05-31%20at%2011.11.19%20AM.png)
+   <img src="https://cl.ly/b82e6352f194/Image%202019-05-31%20at%2011.11.19%20AM.png" width="600" />
 
 1. The app will require specific permission scopes in order to respond to slash commands and send messages. Add the following permission scopes under _OAuth & Permissions_ section:
 
@@ -82,7 +82,7 @@ Now that you configured the app, it's time to run the app locally!
    ```
 
 4. Now the server is running locally on port 3000!
-   ![](https://cl.ly/37208bb63b75/Image%202019-05-31%20at%2010.51.32%20AM.png)
+   <img src="https://cl.ly/37208bb63b75/Image%202019-05-31%20at%2010.51.32%20AM.png" width="600" />
 
 ## Testing the application
 
