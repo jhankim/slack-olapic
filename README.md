@@ -9,7 +9,7 @@ Olapic Integration for Slack! Inspire customers by showcasing quality UGC from y
 
 # Local development
 
-Since this app is currently under development and is not published in the Slack App Directory, so the easiest way to install this integration into your workspace is to [create a new Slack app](https://api.slack.com/apps?new_app=1), and follow the instructions below.
+Since this app is currently under development and is not published in the Slack App Directory, the easiest way to install this integration into your workspace is to [create a new Slack app](https://api.slack.com/apps?new_app=1), and follow the instructions below.
 
 ## Ngrok
 
