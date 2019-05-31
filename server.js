@@ -9,6 +9,16 @@ const app = new App({
   signingSecret: process.env.SLACK_SIGNING_SECRET,
 });
 
+// Olapic API Config
+const olapicAPIConfig = {
+  host: process.env.OLAPIC_API_HOST,
+  headers: {
+    Authorization: `ApiKey token="${process.env.OLAPIC_API_KEY}"`,
+    Accept: 'application/json',
+    'Content-Type': 'application/json',
+  },
+};
+
 /**
  * Build image blocks with provided data
  * @param {object}
@@ -40,7 +50,7 @@ const buildImageBlocks = ({ command, userId, mediaList, nextPageUrl }) => {
         type: 'section',
         text: {
           type: 'mrkdwn',
-          text: `<@${userId}> shared an image!\n\n`,
+          text: `<@${userId}> shared an image from Olapic!\n\n`,
         },
       },
       {
@@ -49,6 +59,7 @@ const buildImageBlocks = ({ command, userId, mediaList, nextPageUrl }) => {
     );
   }
 
+  // build the blocks!
   mediaList.forEach(media => {
     blocks.push(
       {
@@ -160,13 +171,12 @@ app.command(commandText, ({ payload, context, command, ack, say }) => {
       token: context.botToken,
       channel: payload.channel_id,
     };
-  fetch('https://content.photorank.me/v1/media/search', {
+
+  // get headers from olapic API config
+  const { headers } = olapicAPIConfig;
+  fetch(`${olapicAPIConfig.host}/media/search`, {
     method: 'POST',
-    headers: {
-      Authorization: `ApiKey token="${process.env.OLAPIC_API_KEY}"`,
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-    },
+    headers,
     body: JSON.stringify(apiPayload),
   })
     .then(response => response.json())
@@ -202,21 +212,20 @@ app.command(commandText, ({ payload, context, command, ack, say }) => {
  * Action handler - load_more - Loads more content
  */
 app.action('load_more', ({ ack, body, context, action }) => {
+  // acknowledge the action
   ack();
-  const { action_id, value } = action;
-  const userId = body.user.id;
 
+  // parse user ID from the body
+  const userId = body.user.id;
   const tokenAndChannel = {
     token: context.botToken,
     channel: body.container.channel_id,
   };
 
+  // get headers from olapic API config
+  const { headers } = olapicAPIConfig;
   fetch(action.value, {
-    headers: {
-      Authorization: `ApiKey token="${process.env.OLAPIC_API_KEY}"`,
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-    },
+    headers,
   })
     .then(response => response.json())
     .then(json => {
@@ -233,7 +242,7 @@ app.action('load_more', ({ ack, body, context, action }) => {
       // create blocks
       const blocks = buildImageBlocks({ mediaList, nextPageUrl });
 
-      // post
+      // post the page of results back to user
       app.client.chat.postEphemeral({
         ...tokenAndChannel,
         user: userId,
@@ -253,6 +262,10 @@ app.action('view_full', ({ ack }) => {
  * Action handler - share - Shares an image with channel
  */
 app.action(/^(share:).*/, ({ context, action, ack, body }) => {
+  // acknowledge the action
+  ack();
+
+  // parse variables for later use
   const { action_id, selected_channel } = action,
     userId = body.user.id,
     parsedActionId = action_id.split(':'),
@@ -264,36 +277,40 @@ app.action(/^(share:).*/, ({ context, action, ack, body }) => {
       channel: body.container.channel_id,
     };
 
-  fetch(`https://content.photorank.me/v1/media/?ids=${mediaId}`, {
-    headers: {
-      Authorization: `ApiKey token="${process.env.OLAPIC_API_KEY}"`,
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-    },
+  // get header from olapic API config
+  const { headers } = olapicAPIConfig;
+  fetch(`${olapicAPIConfig.host}/media/?ids=${mediaId}`, {
+    headers,
   })
     .then(response => response.json())
     .then(json => {
       const media = json.data.media[mediaId];
 
-      app.client.chat.postEphemeral({
-        ...tokenAndChannel,
-        user: userId,
-        text: `Cool! You just shared *@${userHandle}*'s ${mediaSource} image with <#${selected_channel}> :thumbsup::hugging_face:`,
-      });
-
       // build blocks - use array format since buildImageBlocks only accepts arrays
       const blocks = buildImageBlocks({ userId, mediaList: [media] });
 
       // post message to channel
-      app.client.chat.postMessage({
-        token: context.botToken,
-        channel: selected_channel,
-        blocks,
-      });
+      app.client.chat
+        .postMessage({
+          token: context.botToken,
+          channel: selected_channel,
+          blocks,
+        })
+        .then(() =>
+          app.client.chat.postEphemeral({
+            ...tokenAndChannel,
+            user: userId,
+            text: `Cool! You just shared *@${userHandle}*'s ${mediaSource} image with <#${selected_channel}> :thumbsup::hugging_face:`,
+          })
+        )
+        .catch(err => {
+          app.client.chat.postEphemeral({
+            ...tokenAndChannel,
+            user: userId,
+            text: err,
+          });
+        });
     });
-
-  // Acknowledge action request
-  ack();
 });
 
 (async () => {
