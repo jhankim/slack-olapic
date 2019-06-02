@@ -68,11 +68,11 @@ const buildImageBlocks = ({ command, userId, mediaList, nextPageUrl }) => {
           type: 'mrkdwn',
           text: `*Source:* ${media.source}${
             media.original_source ? `\n*Source URL:* ${media.original_source}` : ''
-          }\n*User handle*: @${media.user.username}\n*Caption:* ${
-            media.caption
-          }\n*Keywords:* ${media.keywords.join(', ')}\n*Date approved*: ${moment(
-            media.date_approved
-          ).format('YYYY-MM-DD h:mma')}`,
+          }\n*User handle*: @${media.user.username}\n*Keywords:* ${media.keywords
+            .map(keyword => `\`${keyword}\``)
+            .join(' ')}\n*Date approved*: ${moment(media.date_approved).format(
+            'YYYY-MM-DD h:mma'
+          )}`,
         },
       },
       {
