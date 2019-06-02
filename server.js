@@ -61,6 +61,32 @@ const buildImageBlocks = ({ command, userId, mediaList, nextPageUrl }) => {
 
   // build the blocks!
   mediaList.forEach(media => {
+    let actionElements = [];
+    if (command) {
+      actionElements.push({
+        action_id: `share:${media.source}:${media.user.username}:${media.id}`,
+        type: 'channels_select',
+        placeholder: {
+          type: 'plain_text',
+          text: 'Share with a channel',
+          emoji: true,
+        },
+      });
+    }
+
+    actionElements.push({
+      type: 'button',
+      text: {
+        type: 'plain_text',
+        text: 'View full resolution image',
+        emoji: true,
+      },
+      url: media.images.original,
+      action_id: 'view_full',
+    });
+
+    console.log(actionElements);
+
     blocks.push(
       {
         type: 'section',
@@ -87,27 +113,7 @@ const buildImageBlocks = ({ command, userId, mediaList, nextPageUrl }) => {
       },
       {
         type: 'actions',
-        elements: [
-          {
-            action_id: `share:${media.source}:${media.user.username}:${media.id}`,
-            type: 'channels_select',
-            placeholder: {
-              type: 'plain_text',
-              text: 'Share with a channel',
-              emoji: true,
-            },
-          },
-          {
-            type: 'button',
-            text: {
-              type: 'plain_text',
-              text: 'View full resolution image',
-              emoji: true,
-            },
-            url: media.images.original,
-            action_id: 'view_full',
-          },
-        ],
+        elements: actionElements,
       },
       {
         type: 'divider',
