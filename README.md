@@ -1,6 +1,14 @@
 # slack-olapic
 
-Olapic Integration for Slack! Inspire customers by showcasing quality UGC from your Olapic Media Library.
+Olapic Integration for Slack! Inspire customers by showcasing quality UGC from your Olapic Media
+Library.
+
+![](./img/demo.gif)
+
+# TODO
+
+- OAuth flow with Olapic
+- Configuration UI to let users customize integration
 
 # Dependencies
 
